@@ -1,207 +1,112 @@
 """
-July 31st, 2014 - Alex - Most current version as of today
+August 18th, 2015 - Alex Filipowicz
 
-This version has working accuracy. Bar condition is ready to go. Added block number and condition to data recording.
-The bar data also records the number of "coins" in each slot - this gives a sense of the actual hight of the bars on any given trial (as opposed to the normalized bars)
-Cup version also working. The cup score resets after each block. Also added block number and condition to data recording
-
-
-
-March 14th, 2014
-
-
-
-This version of plinko is being used to test patients on their ability to represent distributions of ball drops in plinko.
+This is meant to be a Plinko version used to test the effects of uncertain environments on boredom. This version will be a cup version in which participants are attempting to catch a ball using a cup that they can move from side to side, and whose width is static. The goal will be to expose participants to two environments, one highly uncertain and one less uncertain, and measure their boredom before and after each environment.
 
 """
 
 from psychopy import core,event,visual,gui
-
-import pyglet
-
 import random
-
 import os
-
 import numpy as np
-
 import time
-
 import math
+import Tkinter as tk
 
+###############################################
+# Participant information and data file setup #
+###############################################
 
-
-
-
-#Screen parameters used to scale table and slots
-
-screenX = 1280
-
-screenY = 1024
-
-tableWidth = screenX*0.8
-
-tableHeight = screenY*0.5
-
-screenSize = (screenX,screenY)
-
-path = os.getcwd()
-
-moveTime =  [0.015] # Varies the speed with which the ball travels through the pegs
-
-
-
-#Get participant data
-
-#participant = "Test"
-
-#condition = "1" #Condition 1 - Block 1 then Block 2; Condition 2 - Block 2 then Block 1
-
-#answerType = "1" #1: Cup, 2: Bars
-
-participant = None
-
-answerType = None
-
-condition = None
-
+# Get participant data via GUI
 infoBox = gui.Dlg(title = "Participant Information")
-
 infoBox.addField('Participant Number: ')
-
-infoBox.addField('Cup or Bars (1 or 2): ') 
-
+infoBox.addField('Age: ')
+infoBox.addField('Sex: ')
 infoBox.addField('Condition (1 or 2): ')
-
 infoBox.show()
 
 if gui.OK:
-
     pData = infoBox.data
-
     participant = str(pData[0])
-
-    answerType = str(pData[1])
-
-    condition = str(pData[2])
-
+    age = str(pData[1])
+    sex = str(pData[2]
+    condition = str(pData[3])
 elif gui.CANCEL:
-
     core.quit()
 
-win = visual.Window(size = screenSize, color = "grey", units = "pix", fullscr = True, screen = 1)
+# Get directory for future data collection usage
+path = os.getcwd()
 
+# Set up data file
+startTime = time.localtime()
+datafile = file(path+"//data//" + participant +"_plinkoBored_cupData"+str(startTime.tm_mon)+str(startTime.tm_mday)+ "_" + str(startTime.tm_hour) + str(startTime.tm_min) + str(startTime.tm_sec)+".csv", "wb")
+
+# Data file header
+cupHeader = ["Participant", "Age", "Sex", "Condition", "Trial", "Distribution Number", "Ball Position", "CompMean", "OptimalPos", "CupMean","CupLeft","CupRight", "BallCaught", "TotalScore", "CupRT"]
+datafile.write(",".join(cupHeader)+"\n")
+
+
+############################
+# Plinko environment setup #
+############################
+
+# Get screen dimensions
+root = tk.Tk()
+screenX = root.winfo_screenwidth()
+screenY = root.winfo_screenheight()
+screenSize = (screenX,screenY)
+
+# Build default plinko table size according to window size
+tableWidth = screenX*0.8
+tableHeight = screenY*0.5
+
+# Ball speed
+moveTime =  [0.015]
+
+# Initialize window and mouse
+win = visual.Window(size = screenSize, color = "grey", units = "pix", fullscr = True, screen = 1)
 mouse = event.Mouse(win=win)
 
+# Distributions to be estimated
+highUncert = [40,40,40,40,40]
+lowUncert = [1,1,1,1,1]
 
-
-#Distributions to be estimated
-
-narrowCent1 = [1,2]#[20, 20, 18, 23, 19, 17, 22, 18, 21, 21, 24, 22, 20, 23, 18, 20, 19, 21, 20, 17, 20, 18, 19, 19, 23, 18, 19, 17, 19, 18, 19, 17, 19, 21, 19, 19, 17, 17, 18, 19, 19, 21, 20, 19, 22, 22, 19, 19, 19, 21, 14, 18, 20, 21, 22, 19, 17, 19, 20, 19, 20, 20, 17, 17, 18, 18, 17, 24, 19, 17]
-
-wideCent1 = [39,38]#[27, 21, 24, 14, 24, 12, 19, 10, 22, 9, 18, 23, 23, 16, 26, 29, 21, 21, 25, 21, 19, 21, 21, 29, 18, 14, 22, 26, 24, 21, 16, 20, 6, 18, 16, 23, 21, 22, 25, 24, 23, 11, 13, 10, 29, 21, 18, 20, 15, 12, 25, 16, 15, 22, 23, 18, 23, 9, 21, 26, 19, 15, 15, 12, 15, 22, 21, 29, 27, 5]
-
-wideRight1 = [28,27]#[25, 33, 28, 36, 34, 19, 25, 31, 31, 35, 24, 30, 33, 28, 34, 37, 16, 31, 31, 23, 28, 26, 33, 39, 32, 26, 26, 33, 20, 37, 26, 35, 35, 39, 29, 21, 22, 20, 34, 29, 32, 25, 36, 25, 28, 31, 32, 33, 31, 31, 32, 33, 24, 30, 32, 28, 36, 22, 31, 31, 31, 22, 19, 15, 39, 25, 29, 39, 34, 31]
-
-wideCent2 = [15,16]#[19, 9, 21, 15, 9, 16, 25, 29, 25, 5, 21, 29, 23, 21, 10, 18, 12, 21, 16, 22, 20, 26, 18, 12, 24, 26, 22, 21, 11, 21, 22, 23, 21, 21, 20, 14, 22, 27, 21, 18, 15, 23, 29, 24, 16, 23, 19, 16, 14, 23, 22, 21, 18, 15, 15, 6, 18, 10, 24, 25, 23, 26, 19, 13, 27, 21, 24, 29, 12, 15]
-
-narrowCent2 = [17,18]#[21, 19, 22, 19, 19, 20, 17, 19, 14, 18, 21, 20, 19, 21, 23, 17, 19, 21, 20, 17, 20, 20, 17, 21, 18, 17, 23, 22, 17, 20, 17, 18, 19, 19, 20, 21, 17, 17, 19, 19, 20, 18, 19, 19, 18, 19, 19, 22, 19, 24, 18, 20, 24, 21, 19, 22, 19, 23, 18, 19, 22, 18, 19, 18, 20, 18, 17, 19, 17, 20]
-
-narrowRight2 = [34,35]#[30, 29, 30, 29, 32, 29, 28, 27, 31, 31, 29, 30, 27, 32, 29, 29, 29, 33, 27, 32, 30, 31, 30, 33, 29, 28, 30, 27, 30, 30, 34, 31, 28, 28, 32, 27, 29, 30, 31, 34, 29, 30, 29, 27, 28, 28, 29, 28, 29, 31, 29, 24, 29, 33, 27, 30, 29, 27, 29, 31, 28, 29, 27, 28, 29, 29, 32, 27, 27, 28]
-
-block1 = [narrowCent1, wideCent1, wideRight1] #In data, this is referred to as block 1
-
-block2 = [wideCent2, narrowCent2, narrowRight2]# In data, this is referred to as block 2
-
-
-
-def blockOrd(cond):
-
-    if int(cond) == 1:
-
-        return [block1, block2]
-
-    elif int(cond) == 2:
-
-        return [block2, block1]
-
-
-
-blockOrder = blockOrd(condition)
-
-
-
-#Initializing Keyboard (Pyglet)
-
-keyboard = pyglet.window.key.KeyStateHandler()
-
-win.winHandle.push_handlers(keyboard)
-
-
+# Order of distributions depending on condition (1 or 2 specified in GUI)
+if condition == "1":
+	blockOrder = [highUncert,lowUncert]
+elif condition == "2":
+	blockOrder = [lowUncert, highUncert]
 
 #Plinko Table specifications
-
 pegRowNum = 29
-
 pegSep = (screenX*0.8)/pegRowNum
-
 rowSep = (screenY*0.5)/pegRowNum
-
 pegRadius = 2.5
-
 topPegY = (screenY/2)/1.2
-
 topPegX = 0
 
-
-
 # Draw Plinko board with specified number of pegs
-
 pegY = topPegY
-
 count = 0
-
 for row in range(pegRowNum):
-
     pegSpread = pegSep*row
-
     pegX = -(pegSpread/2)
-
     for peg in range(row+1):
-
         dowel = visual.Circle(win, radius = pegRadius, fillColor = "black", pos = (pegX,pegY), lineColor = "grey")
-
         dowel.draw()
-
         pegX += pegSep
-
     pegY -= rowSep
 
-
-
 #Ball slot positions and specifications
-
 slotNum = 40 #number of slots wanted
-
 slotWidth = tableWidth/slotNum
-
 spread = slotWidth/2
-
 slotHeight = 20
-
 slotY = topPegY - (rowSep*pegRowNum)-(slotHeight/2)+5
-
 slotX = -(tableWidth/2)+(slotWidth/2)
-
 slotPos = []
-
 slotSpread = []
-
 slotLimits = []
-
-slotCoins = [] #list of lists to keep track of number of coins in each slot
-
-barList = [] #list of bars person will draw from
 
 for slot in range(slotNum):
 
@@ -231,11 +136,11 @@ for pos in slotPos:
 
 #Initialize datafiles for cup and bars
 
-startTime = time.localtime()
+
 
 barHeader = ["Participant", "Answer Type", "Condition","Trial", "Block Number","Distribution Number", "Ball Position", "Slot Number", "Participant Slot Estimate", "Slot Height","Comp Ball Drop", "Participant Mean", "Participant SD", "Bar RT"]
 
-cupHeader = ["Participant", "Answer Type", "Condition","Trial", "Block Number","Distribution Number", "Ball Position", "Trial Score", "Total Score", "Cup Mean", "Cup Spread", "Left Edge", "Right Edge", "Ball From Mean", "In Cup", "Cup RT"]
+
 
 barDataFile = None
 
