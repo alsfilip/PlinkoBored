@@ -315,7 +315,7 @@ def rewardDisp(sn,bS):
     drawCup(slotPos[sn1][0],col = cupCol)
     drawPbar(totalPoints,maxScore)
     win.flip()
-    core.wait(.2)
+    core.wait(.25)
     return score
     
 #########################
