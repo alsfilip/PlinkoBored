@@ -64,10 +64,11 @@ huDN = [1,1,1,1,1] #Which switch people are on in each block
 huCompMean = [1,1,1,1,1] #Mean of the current gaussian generating the ball drops
 huOpCupPos = [1,1,1,1,1] #Optimal cup mean given generated ball drops
 
-lowUncert = [1,1,1,1,1]
-luDN = [2,2,2,2,2]
-luCompMean = [2,2,2,2,2]
-luOpCupPos = [2,2,2,2,2]
+lowUncert = [17, 17, 17, 16, 15, 17, 16, 19, 17, 18, 15, 16, 17, 16, 11, 16, 17, 15, 17, 14, 19, 20, 19, 17, 18, 19, 14, 21, 16, 22, 18, 13, 18, 18, 16, 15, 18, 16, 19, 5, 6, 6, 10, 4, 6, 5, 6, 8, 4, 5, 5, 4, 8, 7, 4, 11, 8, 6, 7, 4, 2, 7, 4, 5, 6, 6, 7, 6, 6, 8, 6, 5, 6, 6, 4, 2, 10, 29, 26, 27, 26, 23, 22, 27, 24, 29, 26, 27, 25, 27, 23, 28, 28, 25, 28, 26, 26, 28, 29, 25]
+luDN = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+luCompMean = [[17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26]
+luOpCupPos = [17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27]
+print [len(lowUncert),len(luDN),len(luCompMean),len(luOpCupPos)]
 
 # Order of distributions depending on condition (1 or 2 specified in GUI)
 blockOrder = None
@@ -196,7 +197,7 @@ buttonText = visual.TextStim(win,text = "Next", height = (screenY*bHm), pos = (0
 
 # Draws a bar that increases as participants get points
 totalPoints = 0
-maxScore = len(highUncert)
+maxScore = len(lowUncert)
 barLength = float(totalPoints)/maxScore
 pbW = tableWidth*.8*barLength
 pbX = -(tableWidth*.8/2)+(pbW/2)
