@@ -24,7 +24,6 @@ def opPos(bD):
 			l.append(bD.count(x))
 		bCList.append(sum(l))
 		cupPos = cupPos + 1
-	print bCList
 	return bCList.index(max(bCList))
 
 
@@ -35,6 +34,7 @@ def genDist(r,numT,sd):
 	mList = []
 	dNumList = []
 	opPosList = []
+	intList = []
 	dNum = 0 #The distributions number in the list (e.g., the first, second, etc)
 	borders = [sd*2,39-(sd*2)]
 	lastMean = None
@@ -42,10 +42,10 @@ def genDist(r,numT,sd):
 		currDist = []
 		dNum += 1
 		interval = random.choice(r) #Chooses a random interval
+		intList.append(interval)
 		mean = None
 		while True:
 			mean = random.choice(slotRange)
-			print mean, lastMean
 			#Designates the slots that are outside a 2 sd range of the previous mean
 			buffZone = None
 			if lastMean != None:
@@ -76,21 +76,65 @@ def genDist(r,numT,sd):
 			mList.append(mean)
 			dNumList.append(dNum)
 		opPosList += [opPos(currDist)+1]*len(currDist)
-	return [dist,mList,dNumList,opPosList]
+	return [dist,mList,dNumList,opPosList], intList
 
 ##########################################
 # Generate Low Uncertainty distributions #
 ##########################################
 
-trialNum = 100
-trialNumRange = range(30,50)
-luDist = genDist(trialNumRange,trialNum,2)
-print luDist[0]
-print luDist[1]
-print luDist[2]
-print luDist[3]
-print len(luDist[0]),len(luDist[1]),len(luDist[2]),len(luDist[3])
+trialNum = 200
+lutR = (50,70)
+sd = 2
+trialNumRange = range(lutR[0],lutR[1]+1)
+luDist = genDist(trialNumRange,trialNum,sd)
+# print luDist[0][0] #Ball drops generated
+print luDist[0][1] #Means of the generative distributions
+print luDist[0][2] #Distribution number
+print luDist[0][3] #Optimal cup mean
+print luDist[1]    #The intervals between each distributions
 
 ###########################################
 # Generate High Uncertainty distributions #
 ###########################################
+
+# First step - figure our what parts of the distributions you're going to keep the same
+# For now lets work with keeping the 10 trials that precede a switch, and the 10 trials that follow a switch
+
+tBs = 10 #Trials before a switch to be kept from the low uncertainty condition
+tAs = 10 #Trials after a switch to be kept from the low uncertainty condition
+
+# The easiest will probably be to generate a whole new set of distributions and replace some of the generated ones with ones that you want
+hutR = (10,15)
+huTNR = range(hutR[0],hutR[1]+1)
+huDist = genDist(huTNR,trialNum,sd)
+
+# print huDist[0][0] #Ball drops generated
+# print huDist[0][1] #Means of the generative distributions
+# print huDist[0][2] #Distribution number
+# print huDist[0][3] #Optimal cup mean
+# print huDist[1]    #The intervals between each distributions
+
+# Now we extract the portions of the low uncertainty distribution that we want to insert into the high uncertainty distribution
+luBD = luDist[0][0]
+huBD = huDist[0][0]
+sPoints = []
+lp = 0
+for i in luDist[1]:
+	sPoints.append(i+lp)
+	lp += i
+sRan = [[(sPoints[0]-tBs),(sPoints[0]+tAs)],[(sPoints[1]-tBs),(sPoints[1]+tAs)],[(sPoints[2]-tBs),(sPoints[2]+tAs)]]
+
+Insert1 = luBD[sRan[0][0]:sRan[0][1]]
+Insert2 = luBD[sRan[1][0]:sRan[1][1]]
+Insert3 = luBD[sRan[2][0]:sRan[2][1]]
+
+# Insert switches
+huBD[sRan[0][0]:sRan[0][1]] = Insert1
+huBD[sRan[1][0]:sRan[1][1]] = Insert2
+huBD[sRan[2][0]:sRan[2][1]] = Insert3
+
+# print sRan
+# print luBD
+# print huBD
+# 
+# print huBD[sRan[1][0]:sRan[1][1]] == luBD[sRan[1][0]:sRan[1][1]]
