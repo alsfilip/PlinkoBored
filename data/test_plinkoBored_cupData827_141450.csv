@@ -1,0 +1,4 @@
+Participant,Age,Sex,Condition,Block,Trial,Distribution Number,Ball Position,CompMean,OptimalPos,CupMean,CupLeft,CupRight,BallCaught,TotalScore,CupRT
+test,12,m,1,HU,1,1,29,30,27,18,17,19,0,0,0.962013959885
+test,12,m,1,HU,2,1,30,30,27,20,19,21,0,0,1.4167599678
+test,12,m,1,HU,3,1,28,30,27,18,17,19,0,0,1.27728796005

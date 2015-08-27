@@ -6,6 +6,7 @@ This is meant to be a Plinko version used to test the effects of uncertain envir
 """
 
 from psychopy import core,event,visual,gui
+import pyglet, copy
 import random
 import os
 import numpy as np
@@ -109,6 +110,16 @@ tableHeight = screenY*0.5
 # Initialize window and mouse
 win = visual.Window(size = screenSize, color = "grey", units = "pix", fullscr = True, screen = 0)
 mouse = event.Mouse(win=win)
+
+# Wrapper to help reset mouse position
+carbon = pyglet.lib.load_library(framework='/System/Library/Frameworks/Carbon.framework')
+def set_mouse_position(win,x,y):
+    point = pyglet.window.carbon.CGPoint()
+    point.x = ( ((x+1) / 2.0) * win.size[0] ) + win.pos[0]
+    point.y = ( ((y-1) / -2.0) * win.size[1] ) + win.pos[1]
+    carbon.CGWarpMouseCursorPosition(point)
+    win.winHandle._mouse_x = point.x-win.pos[0]
+    win.winHandle._mouse_y = point.y-win.pos[1]
 
 #Plinko Table specifications
 pegRowNum = 29
@@ -219,19 +230,15 @@ def drawPbar(tP,mS):
     pbW = tableWidth*.8*barLength
     pbX = -(tableWidth*.8/2)+(pbW/2)
     bCol = "red"
-    bText = "Poor"
+    bText = str(tP)
     if barLength > .20 and barLength <= .4:
         bCol = "orange"
-        bText = "Decent"
     elif barLength > .4 and barLength <= .6:
         bCol = "yellow"
-        bText = "Good"
     elif barLength > .6 and barLength <= .8:
         bCol = "lightblue"
-        bText = "Great"
     elif barLength > .75:
         bCol = "lightgreen"
-        bText = "Awesome!"
     pBar.setPos((pbX,prY))
     pBar.setWidth(pbW)
     pBar.setFillColor(bCol)
@@ -279,6 +286,7 @@ def setCup(pp):
             core.quit()
         mX, mY = mouse.getPos()
         if mX > buttonX[0] and mX < buttonX[1] and mY > buttonY[0] and mY < buttonY[1]: #Checks to see if "Next" button was pressed
+            set_mouse_position(win,0,0)
             break
         if mY < (slotY-(slotHeight/2)) and mY > -(screenY*.2):
             sN1 = getSlot(mX,mY,slotSpread)
@@ -399,6 +407,7 @@ def recordData(blk, trial,dn,bp,compM,oP,cM,scr,totscr,rt):
     cl,cr = cM-1,cM+1
     trialData = map(str,[participant,age,sex,condition,blk,trial,dn,bp,compM,oP,cM,cl,cr,scr,totscr,rt])
     datafile.write(",".join(trialData) + "\n")
+    datafile.flush()
 
 #################
 # Trial handler #
