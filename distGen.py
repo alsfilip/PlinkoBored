@@ -88,10 +88,10 @@ sd = 2
 trialNumRange = range(lutR[0],lutR[1]+1)
 luDist = genDist(trialNumRange,trialNum,sd)
 # print luDist[0][0] #Ball drops generated
-print luDist[0][1] #Means of the generative distributions
-print luDist[0][2] #Distribution number
-print luDist[0][3] #Optimal cup mean
-print luDist[1]    #The intervals between each distributions
+# print luDist[0][1] #Means of the generative distributions
+# print luDist[0][2] #Distribution number
+# print luDist[0][3] #Optimal cup mean
+# print luDist[1]    #The intervals between each distributions
 
 ###########################################
 # Generate High Uncertainty distributions #
@@ -108,15 +108,19 @@ hutR = (10,15)
 huTNR = range(hutR[0],hutR[1]+1)
 huDist = genDist(huTNR,trialNum,sd)
 
-# print huDist[0][0] #Ball drops generated
-# print huDist[0][1] #Means of the generative distributions
-# print huDist[0][2] #Distribution number
-# print huDist[0][3] #Optimal cup mean
-# print huDist[1]    #The intervals between each distributions
-
 # Now we extract the portions of the low uncertainty distribution that we want to insert into the high uncertainty distribution
 luBD = luDist[0][0]
 huBD = huDist[0][0]
+
+# Same thing but for the means
+luMean = luDist[0][1]
+huMean = huDist[0][1]
+
+# Same for the optimal cup size
+luOp = luDist[0][3]
+huOp = huDist[0][3]
+
+# Adjust the high uncertainty values
 sPoints = []
 lp = 0
 for i in luDist[1]:
@@ -124,17 +128,58 @@ for i in luDist[1]:
 	lp += i
 sRan = [[(sPoints[0]-tBs),(sPoints[0]+tAs)],[(sPoints[1]-tBs),(sPoints[1]+tAs)],[(sPoints[2]-tBs),(sPoints[2]+tAs)]]
 
-Insert1 = luBD[sRan[0][0]:sRan[0][1]]
-Insert2 = luBD[sRan[1][0]:sRan[1][1]]
-Insert3 = luBD[sRan[2][0]:sRan[2][1]]
+Insert1_BD = luBD[sRan[0][0]:sRan[0][1]]
+Insert2_BD = luBD[sRan[1][0]:sRan[1][1]]
+Insert3_BD = luBD[sRan[2][0]:sRan[2][1]]
 
-# Insert switches
-huBD[sRan[0][0]:sRan[0][1]] = Insert1
-huBD[sRan[1][0]:sRan[1][1]] = Insert2
-huBD[sRan[2][0]:sRan[2][1]] = Insert3
+Insert1_Mean = luMean[sRan[0][0]:sRan[0][1]]
+Insert2_Mean = luMean[sRan[1][0]:sRan[1][1]]
+Insert3_Mean = luMean[sRan[2][0]:sRan[2][1]]
 
-# print sRan
-# print luBD
-# print huBD
-# 
-# print huBD[sRan[1][0]:sRan[1][1]] == luBD[sRan[1][0]:sRan[1][1]]
+Insert1_Op = luOp[sRan[0][0]:sRan[0][1]]
+Insert2_Op = luOp[sRan[1][0]:sRan[1][1]]
+Insert3_Op = luOp[sRan[2][0]:sRan[2][1]]
+
+# Insert switches, mean and optimal cup size info
+huBD[sRan[0][0]:sRan[0][1]] = Insert1_BD
+huBD[sRan[1][0]:sRan[1][1]] = Insert2_BD
+huBD[sRan[2][0]:sRan[2][1]] = Insert3_BD
+
+huMean[sRan[0][0]:sRan[0][1]] = Insert1_Mean
+huMean[sRan[1][0]:sRan[1][1]] = Insert2_Mean
+huMean[sRan[2][0]:sRan[2][1]] = Insert3_Mean
+
+huOp[sRan[0][0]:sRan[0][1]] = Insert1_Op
+huOp[sRan[1][0]:sRan[1][1]] = Insert2_Op
+huOp[sRan[2][0]:sRan[2][1]] = Insert3_Op
+
+# Make a distribution number list for high uncertainty that matches the actual switches
+luDistNum = luDist[0][2]
+huDistNum = []
+lastIt = None
+dn = 0
+for i in huMean:
+	if i != lastIt:
+		lastIt = i
+		dn +=1
+	huDistNum.append(dn)
+
+# Output ball drops
+print "Ball Distributions"
+print luBD
+print huBD
+
+# Output Means
+print "Distribution Means"
+print luMean
+print huMean
+
+# Output Optimal Cup Size
+print "Optimal Cup Size"
+print luOp
+print huOp
+
+# Print distribution numbers
+print "Distribution Numbers"
+print luDistNum
+print huDistNum
